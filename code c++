@@ -1,0 +1,212 @@
+#include<stdio.h>
+#include<queue>
+
+using namespace std;
+
+struct node{
+	int step;
+	int row;
+	int col;
+	int level;
+};
+	
+queue<node> qnodes;
+char dungeon[100][100][100];
+int L;	
+int R;
+int C;
+	
+void clearDungeon(){
+	for(int i=0;i<40;i++){
+		for(int j=0;j<40;j++){
+			for(int k=0;k<40;k++){
+				dungeon[i][j][k] = ' ';
+			}
+		}
+	}
+}
+
+node newNode(int level,int row,int col,int step){
+	node n;
+	n.level = level;
+	n.row = row;
+	n.col = col;
+	n.step = step;
+  
+	return n;
+}
+
+void openNode(node current){
+	
+	int currLevel = current.level;
+	int currRow = current.row;
+	int currCol = current.col;
+	int step = current.step;
+	
+	//down
+	if(dungeon[currLevel][currRow+1][currCol] != '#' && currRow+1 < R) {
+		node n;
+		n.level = currLevel;
+		n.row = currRow+1;
+		n.col = currCol;
+		n.step = step+1;
+		
+		qnodes.push(n);
+	}
+	
+	//up
+	if(dungeon[currLevel][currRow-1][currCol] != '#' && currRow-1 >= 0) {
+		node n;
+		n.level = currLevel;
+		n.row = currRow-1;
+		n.col = currCol;
+		n.step = step+1;
+		
+		qnodes.push(n);
+	}
+	
+	//left
+	if(dungeon[currLevel][currRow][currCol-1] != '#' && currCol-1 >= 0){
+		node n;
+		n.level = currLevel;
+		n.row = currRow;
+		n.col = currCol-1;
+		n.step = step+1;
+		
+		qnodes.push(n);
+	} 
+	
+	//right
+	if(dungeon[currLevel][currRow][currCol+1] != '#' && currCol+1 < C){
+		node n;
+		n.level = currLevel;
+		n.row = currRow;
+		n.col = currCol+1;
+		n.step = step+1;
+		
+		qnodes.push(n);
+	} 
+	
+	//level up
+	if(dungeon[currLevel+1][currRow][currCol] != '#' && currLevel+1 < L){
+		node n;
+		n.level = currLevel+1;
+		n.row = currRow;
+		n.col = currCol;
+		n.step = step+1;
+		
+		qnodes.push(n);
+	} 
+	
+	//level down
+	if(dungeon[currLevel-1][currRow][currCol] != '#' && currLevel-1 >= 0){
+		node n;
+		n.level = currLevel-1;
+		n.row = currRow;
+		n.col = currCol;
+		n.step = step+1;
+		
+		qnodes.push(n);
+	} 
+	
+}
+
+int num = 0;
+
+int pathFinding(){
+	
+	while(true){
+		
+		if(qnodes.empty()){
+			return 0;
+		}
+		
+		node now = qnodes.front();
+		qnodes.pop();	
+		
+		int level = now.level;
+		int row = now.row;
+		int col = now.col;
+		
+		if(dungeon[level][row][col] == 'E'){
+			return now.step;
+		}
+		
+		if(dungeon[level][row][col] != '#') {
+			dungeon[level][row][col] = '#';
+			openNode(now);
+		}
+		
+		if(qnodes.empty()){
+			
+			return 0;
+		}
+	}
+}
+
+
+int main(){
+
+
+	while(scanf("%d %d %d",&L,&R,&C) != EOF){
+		queue<node>empty;
+   		swap(qnodes,empty);
+   		
+		if(L == 0 && R == 0 && C == 0){
+			break;
+		} 
+		else{
+			
+			clearDungeon();
+			
+			for(int level=0;level<L;level++){
+				
+				for(int row = 0;row<R;row++){
+					
+					for(int col=0;col<=C;col++){
+						char temp;
+						scanf("%c",&temp);
+						
+						if(temp == '\n') continue;
+						
+						dungeon[level][row][col-1] = temp;
+					}
+				}
+				char temp;
+				scanf("%c",&temp);
+			}
+			
+			char temp;
+			scanf("%c",&temp);
+			
+			node start;
+			
+			for(int level = 0;level<L;level++){
+	
+				for(int i=0;i<R;i++){
+					for(int j=0;j<C;j++){
+						if(dungeon[level][i][j] == 'S'){
+							start.col = j;
+							start.row = i ;
+							start.level = level;
+							start.step = 0;
+						}
+					}
+				}
+			}
+			
+			dungeon[start.level][start.row][start.col] = '#';
+			openNode(start);
+			int time = pathFinding();
+			
+			if(time > 0){
+				printf("Escaped in %d minute(s).\n",time);
+			}
+			else{
+				printf("Trapped!\n");
+			}
+		
+		}
+	}
+	return 0;
+}
